@@ -67,7 +67,7 @@ class InputConnect:
 
     @staticmethod
     def get_params():
-        file_name = input("Введите название файла: ")
+        file_name = input("Введите название журнала: ")
         profession_name = input("Введите название профессии: ")
         return file_name, profession_name
 
