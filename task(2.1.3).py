@@ -13,6 +13,11 @@ import pdfkit
 
 
 def quick_quit(msg):
+    """Осуществляет выход из программы с сообщением.
+
+    Args:
+          msg (str): Сообщение, которое нужно вывести
+    """
     print(msg)
     exit(0)
 
@@ -45,13 +50,35 @@ currency = {
 
 
 class UserInput:
+    """Класс для принятия вводимых значений.
+
+    Attributes:
+        file_name (string): Название файла
+        vacancy_name (string): Название профессии
+    """
+
     def __init__(self):
+        """Инициализирует объект UserInput, принимает пользовательский ввод"""
         self.file_name = input('Введите название файла: ')
         self.vacancy_name = input('Введите название профессии: ')
 
 
 class DataSet:
+    """Класс для чтения и обработки данных файла с расширением .csv.
+
+    Attributes:
+        data (list[list[str]]): Список всех строк файла
+        names (list[str]): Список с названиями колонок
+        all_data (list[list[str]]): Список всех строк файла без учета строки с названиями колонок и строк,
+         в которых есть пустые элементы
+    """
+
     def __init__(self, file_name):
+        """Инициализирует объект DataSet, выполняет чтение и обработку данных .csv файла
+
+        Args:
+            file_name (str): Название файла
+        """
         if os.stat(file_name).st_size == 0:
             quick_quit("Пустой файл")
 
@@ -64,6 +91,20 @@ class DataSet:
 
 
 class StaticInfo:
+    """Класс для получения статистики из файла.
+
+    Attributes:
+        salaries_by_year (dict): Динамика уровня зарплат по годам
+        vacancies_by_year (dict): Динамика количества вакансий по годам
+        inp_vacancy_salary (dict): Динамика уровня зарплат по годам для выбранной профессии
+        inp_vacancy_count (dict): Динамика количества вакансий по годам для выбранной профессии
+        salaries_areas (dict): Уровень зарплат по городам (в порядке убывания) - только первые 10 значений
+        vacancies_areas (dict): Доля вакансий по городам (в порядке убывания) - только первые 10 значений
+        vacancies (int): Количество всех вакансий
+        dicts_list_by_year (list[dict]): Список со словарями, собирающими статистику по годам
+        dicts_list_by_area (list[dict]): Список со словарями, собирающими статистику по городам
+        vac_with_others (dict): Словарь с долей вакансий, которые не попали в топ-10
+    """
     salaries_by_year: dict = {}
     vacancies_by_year: dict = {}
     inp_vacancy_salary: dict = {}
@@ -76,6 +117,8 @@ class StaticInfo:
     vac_with_others: dict
 
     def __init__(self):
+        """Инициализирует объект StaticInfo, подготавливает словари для дальнейшей записи
+        """
         for i in range(2007, 2023):
             self.salaries_by_year[i] = []
             self.vacancies_by_year[i] = 0
@@ -84,12 +127,29 @@ class StaticInfo:
 
     @staticmethod
     def sort_dict(dictionary):
+        """Сортирует словарь dictionary по значениям
+
+        Args:
+            dictionary (dict): Словарь, который нужно отсортировать по значениям
+
+        Returns:
+            sorted_dict (dict): Отсортированный по значениям словарь
+        """
         sorted_tuples = sorted(dictionary.items(), key=lambda item: item[1], reverse=True)[:10]
         sorted_dict = {k: v for k, v in sorted_tuples}
         return sorted_dict
 
     @staticmethod
     def check_len_dic(dic, vac_name=""):
+        """Проверяет длину словаря, если он содержит зарплату, и удаляет нулевые значения из него
+
+        Args:
+            dic (dict): Словарь, который нужно проверить
+            vac_name (str): Название введенной профессии
+
+        Returns:
+            (dict): Отформатированный словарь
+        """
         new_dic = {}
         for name, item in dic.items():
             if len(item) != 0:
@@ -100,6 +160,15 @@ class StaticInfo:
 
     @staticmethod
     def check_int_dic(dic, vac_name=""):
+        """Проверяет длину словаря, если он содержит количество вакансий, и удаляет нулевые значения из него
+
+        Args:
+            dic (dict): Словарь, который нужно проверить
+            vac_name (str): Название введенной профессии
+
+        Returns:
+            (dict): Отформатированный словарь
+        """
         new_dic = {}
         for name, item in dic.items():
             if item != 0:
@@ -109,6 +178,9 @@ class StaticInfo:
         return new_dic
 
     def check_one_percent(self):
+        """Вычисляет процент вакансий из общего количества в словарях по городам и оставляет те значения,
+         процент вакансий которых больше или равен 1. А также считает сумму долей вакансий, у которых процент меньше 1
+        """
         vacancies_areas_dict = {}
         salaries_areas_dict = {}
         self.vac_with_others = {"Другие": 0}
@@ -123,6 +195,10 @@ class StaticInfo:
         self.vacancies_areas = vacancies_areas_dict
 
     def print_result(self, vac_name):
+        """Печатает на экран все словари и формирует списки со словарями по годам и городам
+        Args:
+            vac_name (str): Название введенной профессии
+        """
         self.check_one_percent()
         ch_salaries_by_year = self.check_len_dic(self.salaries_by_year)
         ch_vacancies_by_year = self.check_int_dic(self.vacancies_by_year)
@@ -143,6 +219,17 @@ class StaticInfo:
 
 
 class Vacancy:
+    """Класс для представления одной вакансии.
+
+    Attributes:
+        name (str): Название вакансии
+        salary_from (int or float): Нижняя граница вилки оклада
+        salary_to (int or float): Верхняя граница вилки оклада
+        salary_currency (str): Валюта оклада
+        area_name (str): Город, в котором предоставляется вакансия
+        published_at (str): Дата публикации вакансии
+        salary (int): Средняя зарплата в рублях
+    """
     name: str
     salary_from: int or float
     salary_to: int or float
@@ -152,6 +239,11 @@ class Vacancy:
     salary: int
 
     def __init__(self, pers_data):
+        """Инициализирует объект Vacancy и его аттрибуты, подсчитывает среднюю зарплату в рублях
+
+        Args:
+            pers_data (dict): Словарь, содержащий все данные об одной вакансии
+        """
         for name, item in pers_data.items():
             self.__setattr__(name, self.formatter(name, item))
 
@@ -160,6 +252,15 @@ class Vacancy:
 
     @staticmethod
     def formatter(name, item):
+        """Форматирует каждый аттрибут класса и приводит его в нужный вид
+
+        Args:
+            name (str): Название аттрибута
+            item (str or int or float): Значение аттрибута
+
+        Returns:
+            str: Отформатированное значение
+        """
         if name == 'salary_currency':
             return currency[item]
         elif name == "salary_to" or name == "salary_from":
@@ -170,6 +271,12 @@ class Vacancy:
             return item
 
     def get_vac_data(self, dicts, vac_name):
+        """Заполняет словари класса StaticInfo значениями
+
+        Args:
+            dicts (StaticInfo): Экземпляр класса StaticInfo
+            vac_name (str): Название профессии
+        """
         year_key = self.published_at
         area_key = self.area_name
 
@@ -194,11 +301,28 @@ class Vacancy:
 
 
 class Report:
+    """Класс для создания отчета, то есть excel, png и pdf файлов.
+
+    Attributes:
+        rows_by_year (list[str]): Список названий колонок первой страницы
+        rows_by_area (list[str]): Список названий колонок второй страницы
+        book (Workbook): Экземпляр класса Workbook библиотеки openpyxl
+        sheet_by_year (Worksheet): Экземпляр класса Worksheet библиотеки openpyxl (первая страница)
+        sheet_by_area (Worksheet): Экземпляр класса Worksheet библиотеки openpyxl (вторая страница)
+    """
     rows_by_year = ["Год", "Средняя зарплата", "Средняя зарплата - ", "Количество вакансий",
                     "Количество вакансий - "]
     rows_by_area = ["Город", "Уровень зарплат", "", "Город", "Доля вакансий"]
 
     def __init__(self, vac_name, dicts_by_year, dicts_by_area, vac_with_others):
+        """Инициализирует объект Report, создаёт экземпляр Workbook и Worksheet, вызывает методы для создания файлов
+
+        Args:
+            vac_name (str): Название профессии
+            dicts_by_year (list[dict]): Список словарей распределенных по годам класса StaticInfo
+            dicts_by_area (list[dict]): Список словарей распределенных по городам класса StaticInfo
+            vac_with_others (dict): Словарь содержащий сумму долей вакансий не вошедших в топ-10 по количеству
+        """
         self.book = openpyxl.Workbook()
         self.book.remove(self.book.active)
 
@@ -211,6 +335,13 @@ class Report:
 
     @staticmethod
     def generate_pdf(vac_name, dicts_by_year, dicts_by_area):
+        """Генерирует файл .pdf с необходимой статистикой
+
+        Args:
+            vac_name (str): Название профессии
+            dicts_by_year (list[dict]): Список словарей распределенных по годам класса StaticInfo
+            dicts_by_area (list[dict]): Список словарей распределенных по городам класса StaticInfo
+        """
         env = Environment(loader=FileSystemLoader('.'))
         template = env.get_template("pdf_template.html")
 
@@ -225,6 +356,14 @@ class Report:
 
     @staticmethod
     def generate_image(vac_name, dicts_by_year, dicts_by_area, vac_with_others):
+        """Генерирует файл .png (изображение) с необходимой статистикой
+
+        Args:
+            vac_name (str): Название профессии
+            dicts_by_year (list[dict]): Список словарей распределенных по годам класса StaticInfo
+            dicts_by_area (list[dict]): Список словарей распределенных по городам класса StaticInfo
+            vac_with_others (dict): Словарь содержащий сумму долей вакансий не вошедших в топ-10 по количеству
+        """
         y1_cities = np.arange(len(dicts_by_area[0].keys()))
         y1_cities_names = {}
         for key, value in dicts_by_area[0].items():
@@ -272,7 +411,8 @@ class Report:
         ax.set_title("Доля вакансий по городам")
         dicts_by_area[1]["Другие"] = vac_with_others["Другие"]
         ax.pie(dicts_by_area[1].values(), labels=dicts_by_area[1].keys(), textprops={'size': 6},
-               colors=["#ff8006", "#28a128", "#1978b5", "#0fbfd0", "#bdbe1c", "#808080", "#e478c3", "#8d554a", "#9567be",
+               colors=["#ff8006", "#28a128", "#1978b5", "#0fbfd0", "#bdbe1c", "#808080", "#e478c3", "#8d554a",
+                       "#9567be",
                        "#d72223", "#1978b5", "#ff8006"])
         ax.axis('equal')
 
@@ -280,6 +420,13 @@ class Report:
         plt.savefig("graph.png")
 
     def generate_excel(self, vac_name, dicts_by_year, dicts_by_area):
+        """Генерирует файл .excel (таблицу) с необходимой статистикой
+
+        Args:
+            vac_name (str): Название профессии
+            dicts_by_year (list[dict]): Список словарей распределенных по годам класса StaticInfo
+            dicts_by_area (list[dict]): Список словарей распределенных по городам класса StaticInfo
+        """
         thins = Side(border_style="thin", color="000000")
 
         self.set_value_first_sheet(vac_name, dicts_by_year, thins)
@@ -289,6 +436,13 @@ class Report:
         self.book.save("report.xlsx")
 
     def set_value_first_sheet(self, vac_name, dicts_by_year, thins):
+        """Устанавливает необходимые значение для таблицы по годам (первая страница)
+
+        Args:
+            vac_name (str): Название профессии
+            dicts_by_year (list[dict]): Список словарей распределенных по годам класса StaticInfo
+            thins (Side): Экземпляр класса Side библиотеки openpyxl задающий ширину границы ячейки
+        """
         # Установка столбцов первого листа
         for i, value in enumerate(self.rows_by_year, 1):
             self.sheet_by_year.cell(row=1, column=i).font = Font(bold=True)
@@ -302,6 +456,12 @@ class Report:
                 [year, value, dicts_by_year[1][year], dicts_by_year[2][year], dicts_by_year[3][year]])
 
     def set_value_second_sheet(self, dicts_by_area, thins):
+        """Устанавливает необходимые значение для таблицы по городам (вторая страница)
+
+        Args:
+            dicts_by_area (list[dict]): Список словарей распределенных по городам класса StaticInfo
+            thins (Side): Экземпляр класса Side библиотеки openpyxl задающий ширину границы ячейки
+        """
         # Установка столбцов второго листа
         for i, value in enumerate(self.rows_by_area, 1):
             if value != "":
@@ -319,6 +479,12 @@ class Report:
                                        list(dicts_by_area[1].values())[i]])
 
     def set_value(self, thins):
+        """Устанавливает необходимую ширину столбцов страниц, устанавливает необходимую толщину границ ячеек,
+        а также необходимый формат для ячейки с процентами
+
+        Args:
+            thins (Side): Экземпляр класса Side библиотеки openpyxl задающий ширину границы ячейки
+        """
         dims = {}
         for row in self.sheet_by_year.rows:
             for cell in row:
@@ -353,6 +519,15 @@ class Report:
 
 
 def parse_html(info):
+    """Удаляет теги html из строки
+
+    Args:
+        info (str): строка из которой необходимо удалить html код
+
+    Returns:
+        list[str] or list: строка из которой удалили html код или
+         список строк из которых удалили html код и убрали переносы строки
+    """
     info = re.sub('<.*?>', '', info)
     info = info.replace("\r\n", "\n")
     res = [' '.join(word.split()) for word in info.split('\n')]
