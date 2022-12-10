@@ -343,7 +343,7 @@ class Report:
             dicts_by_area (list[dict]): Список словарей распределенных по городам класса StaticInfo
         """
         env = Environment(loader=FileSystemLoader('.'))
-        template = env.get_template("pdf_template.html")
+        template = env.get_template("template.html")
 
         pdf_template = template.render(
             {'name': vac_name, 'by_year': dicts_by_year, 'by_area': dicts_by_area,

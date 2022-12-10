@@ -78,8 +78,8 @@ class Vacancy:
 
     @staticmethod
     def get_year(date):
-        new_data = int(datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').strftime("%Y"))
-        #new_data = int(".".join(date[:4].split("-")))
+        #new_data = int(datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').strftime("%Y"))
+        new_data = int(".".join(date[:4].split("-")))
         # big, small = date[:19].split('T')
         # year, month, day = big.split('-')
         # new_data = int(year)
